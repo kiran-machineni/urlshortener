@@ -22,7 +22,7 @@ app.get("/", function (req, res) {
 app.get("/api/hello", function (req, res) {
 	res.json({ greeting: "hello API" })
 })
-let = shortId = 1010
+let shortId = 1010
 app.post("/api/shorturl", function (req, res) {
 	const url = req.body.url
 	validateURL(url)
