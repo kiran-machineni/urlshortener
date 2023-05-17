@@ -1,24 +1,20 @@
 const dns = require("dns")
 
-const validateURL = async urlString => {
+const validateURL = urlString => {
 	try {
 		const parsedURL = new URL(urlString)
 		const hostname = parsedURL.hostname
-		console.log("hostname: ", hostname)
-		const lookupPromise = new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			dns.lookup(hostname, err => {
 				if (err) {
-					console.error(err)
-					resolve({ valid: false, error: "Invalid Hostname" })
+					resolve({ valid: false, error: "invalid url" })
 				} else {
 					resolve({ valid: true, host: hostname })
 				}
 			})
 		})
-		return await lookupPromise
 	} catch (error) {
-		console.error(error)
-		return { valid: false, error: "Invalid URL" }
+		return Promise.resolve({ valid: false, error: "invalid url" })
 	}
 }
 

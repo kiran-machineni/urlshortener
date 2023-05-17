@@ -1,56 +1,54 @@
-const { MongoClient } = require("mongodb")
+const mongoose = require("mongoose")
 
-/*
- * Requires the MongoDB Node.js Driver
- * https://mongodb.github.io/node-mongodb-native
- */
+// Define the schema for the URL collection
+const urlSchema = new mongoose.Schema({
+	URL: {
+		type: String,
+		required: true
+	},
+	shortUrl: {
+		type: Number,
+		required: true
+	}
+})
 
-const connectStr = process.env.MONGODB_CONNECTION_STRING
-const mongoOptions = {
+// Create a model for the URL collection
+const URLModel = mongoose.model("URL", urlSchema)
+
+// Connect to MongoDB using the Mongoose connection
+mongoose.connect(process.env.MONGODB_CONNECTION_STRING, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
-}
+})
 
 const insertURL = async url => {
-	const client = new MongoClient(connectStr, mongoOptions)
 	try {
-		await client.connect()
-		const coll = client.db("freecodecamp").collection("url_shortener")
-
-		// Get the highest shortUrl number
-		const highestNumberDoc = await coll.findOne({}, { sort: { shortUrl: -1 } })
+		const highestNumberDoc = await URLModel.findOne(
+			{},
+			{ shortUrl: 1 },
+			{ sort: { shortUrl: -1 } }
+		)
 		let highestNumber = 0
 		if (highestNumberDoc) {
 			highestNumber = highestNumberDoc.shortUrl
 		}
-
-		// Increment the highest shortUrl number by 1
 		const newShortUrl = highestNumber + 1
-
-		// Insert the new URL document with the incremented shortUrl number
 		const insertDoc = { URL: url, shortUrl: newShortUrl }
-		await coll.insertOne(insertDoc)
-		return insertDoc
+		const result = await URLModel.create(insertDoc)
+		return result
 	} catch (error) {
 		console.error("Error inserting URL:", error)
-	} finally {
-		client.close()
+		throw error
 	}
 }
 
 const getURL = async shortUrlId => {
-	const client = new MongoClient(connectStr, mongoOptions)
 	try {
-		await client.connect()
-		const coll = client.db("freecodecamp").collection("url_shortener")
-		const filter = { shortUrl: shortUrlId }
-		const result = await coll.findOne(filter)
+		const result = await URLModel.findOne({ shortUrl: shortUrlId })
 		return result
 	} catch (error) {
 		console.error("Error getting URL:", error)
-		throw new Error(error)
-	} finally {
-		client.close()
+		throw error
 	}
 }
 
